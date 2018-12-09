@@ -1,0 +1,11 @@
+# depslib dependency file v1.0
+1544384513 source:c:\users\alex\documents\github\ics3u-summative\main.cpp
+	"connect4.h"
+
+1544384308 c:\users\alex\documents\github\ics3u-summative\connect4.h
+	<stdio.h>
+	<allegro5/allegro.h>
+	<allegro5/allegro_image.h>
+	<allegro5/allegro_primitives.h>
+	<allegro5/allegro_native_dialog.h>
+
