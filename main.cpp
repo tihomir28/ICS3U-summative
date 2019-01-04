@@ -2,26 +2,171 @@
 
 int main(int argc, char *argv[]) {
 
-	initializeAllegro(display, image);
+	initializeAllegro("Connect 4");
+
 	int field[7][6] = {0};
-	circlemaker(field);
-	checkerplacer(field, 0, 1);
-    checkerplacer(field, 0, 2);
-    al_rest(5);
+	bool exit = false;
+	int colour = 1;
+	coord mouseCoordinates;
+	drawScreen(field, 7, 0);
+
+	al_start_timer(timer);
+    while(!exit){
+        al_wait_for_event(event_queue, &ev);
+        if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE){
+            exit = true;
+        }
+        else if(ev.type == ALLEGRO_EVENT_MOUSE_AXES){
+            mouseCoordinates.mx = ev.mouse.x;
+            mouseCoordinates.my = ev.mouse.y;
+        }
+        else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN){
+            mouseCoordinates.mx = ev.mouse.x;
+            mouseCoordinates.my = ev.mouse.y;
+            if(field[column(mouseCoordinates)][0] == 0){
+                exit = checkerplacer(field, column(mouseCoordinates), colour);
+                if(colour == 1)
+                    colour = 2;
+                else
+                    colour = 1;
+            }
+        }
+        else if(ev.type == ALLEGRO_EVENT_TIMER){
+            drawScreen(field, column(mouseCoordinates), colour);
+        }
+    }
     return 0;
 }
 
-void checkerplacer(int f[][6], int column, int colour){
+bool checkerplacer(int f[][6], int column, int colour){
+    coord placedPiece;
+    placedPiece.mx = column;
     for(int i=5; i>=0; i--){
         if(f[column][i] == 0){
             f[column][i] = colour;
+            placedPiece.my = i;
             break;
         }
     }
-    circlemaker(f);
+    if(!winner(f, placedPiece, colour)){
+        drawScreen(f, 7, 0);
+        return false;
+    }
+    else{
+        drawScreen(f, 8, colour);
+        return true;
+    }
 }
 
-int circlemaker(int f[][6]){
+bool winner(int board[][6], coord lastPlaced, int tint){
+    bool stopper[2] = {false, false};
+    int counter = 0;
+    /// direction 1: horizontal
+    for(int i = 1; i < 4; i++){
+        if(lastPlaced.mx - i <= -1)
+            stopper[0] == true;
+        if(lastPlaced.mx + i >= 7)
+            stopper[1] == true;
+        if(!stopper[0]){
+            if(board[lastPlaced.mx-i][lastPlaced.my] == tint)
+                counter ++;
+            else
+                stopper[0] = true;
+        }
+        if(!stopper[1]){
+            if(board[lastPlaced.mx+i][lastPlaced.my] == tint)
+                counter ++;
+            else
+                stopper[1] = true;
+        }
+        if(counter >= 3)
+            return true;
+    }
+    counter = 0;
+    stopper[0] = false;
+    stopper[1] = false;
+    /// direction 2: vertical
+    for(int i = 1; i < 4; i++){
+        if(lastPlaced.my + i >= 6)
+            stopper[1] == true;
+        if(!stopper[1]){
+            if(board[lastPlaced.mx][lastPlaced.my+i] == tint)
+                counter ++;
+            else
+                stopper[1] = true;
+        }
+        if(counter >= 3)
+            return true;
+    }
+    counter = 0;
+    stopper[0] = false;
+    stopper[1] = false;
+    /// direction 3: first diagonal (\)
+    for(int i = 1; i < 4; i++){
+        if(lastPlaced.mx - i <= -1 || lastPlaced.my - i <= -1)
+            stopper[0] == true;
+        if(lastPlaced.mx + i >= 7 || lastPlaced.my + i >= 6)
+            stopper[1] == true;
+        if(!stopper[0]){
+            if(board[lastPlaced.mx-i][lastPlaced.my-i] == tint)
+                counter ++;
+            else
+                stopper[0] = true;
+        }
+        if(!stopper[1]){
+            if(board[lastPlaced.mx+i][lastPlaced.my+i] == tint)
+                counter ++;
+            else
+                stopper[1] = true;
+        }
+        if(counter >= 3)
+            return true;
+    }
+    counter = 0;
+    stopper[0] = false;
+    stopper[1] = false;
+    /// direction 4: second diagonal (/)
+    for(int i = 1; i < 4; i++){
+        if(lastPlaced.mx - i <= -1 || lastPlaced.my + i >= 6)
+            stopper[0] == true;
+        if(lastPlaced.mx + i >= 7 || lastPlaced.my - i <= -1)
+            stopper[1] == true;
+        if(!stopper[0]){
+            if(board[lastPlaced.mx-i][lastPlaced.my+i] == tint)
+                counter ++;
+            else
+                stopper[0] = true;
+        }
+        if(!stopper[1]){
+            if(board[lastPlaced.mx+i][lastPlaced.my-i] == tint)
+                counter ++;
+            else
+                stopper[1] = true;
+        }
+        if(counter >= 3)
+            return true;
+    }
+    return false;
+}
+
+int column(coord xyvalues){
+    if((xyvalues.mx > 111 && xyvalues.mx < 191) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 0;
+    else if((xyvalues.mx > 191 && xyvalues.mx < 248) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 1;
+    else if((xyvalues.mx > 248 && xyvalues.mx < 304) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 2;
+    else if((xyvalues.mx > 304 && xyvalues.mx < 358) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 3;
+    else if((xyvalues.mx > 358 && xyvalues.mx < 414) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 4;
+    else if((xyvalues.mx > 414 && xyvalues.mx < 469) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 5;
+    else if((xyvalues.mx > 469 && xyvalues.mx < 555) && (xyvalues.my > 54 && xyvalues.my < 350))
+        return 6;
+}
+
+int drawScreen(int f[][6], int verticalRow, int hue){
     image = al_load_bitmap("c4.bmp");
     al_draw_bitmap(image, 0,  0, 0);
     for(int i=0; i<=5; i++){
@@ -39,14 +184,28 @@ int circlemaker(int f[][6]){
             }
         }
     }
-
-
+    if(verticalRow < 7){
+        if(hue == 1)
+            al_draw_filled_circle(165+(verticalRow*55), 30, 23, RED);
+        else
+            al_draw_filled_circle(165+(verticalRow*55), 30, 23, BLACK);
+    }
+    if(verticalRow == 8){
+        if(hue == 1){
+            al_draw_filled_circle(23, 23, 23, RED);
+        }
+        else{
+            al_draw_filled_circle(23, 23, 23, BLACK);
+        }
+    }
     al_flip_display();
+    if(verticalRow == 8)
+        al_rest(5);
     return 0;
 }
 
 
-int initializeAllegro(ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *image){
+int initializeAllegro(const char title[]){
     // Initialize Allegro
 	al_init();
 
@@ -57,7 +216,7 @@ int initializeAllegro(ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *image){
                                  nullptr, ALLEGRO_MESSAGEBOX_ERROR);
        	return -1;
 	}
- 	al_set_window_title(display, "Connect 4");
+ 	al_set_window_title(display, title);
 
 	// Initialize image add on
  	if (!al_init_image_addon()) {
@@ -66,12 +225,13 @@ int initializeAllegro(ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *image){
     	return -1;
 	}
 
-	// Declare a BITMAP called image, setting it's initial value to nullptr
+	timer = al_create_timer(1.0 / FPS);
+   	if (!timer) {
+   		al_show_native_message_box(display, "Error", "Error", "Failed to create timer!",
+                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+        return -1;
+    }
 
-
-	// Load the bitmap into the Bitmap structure
-	// image file must be in same directory.
-	// Particularly check return code of this type of function that will fail if file not found.
     image = al_load_bitmap("c4.bmp");
   	if (!image) {
 		al_show_native_message_box(display, "Error", "Error", "Failed to load image!",
@@ -84,5 +244,20 @@ int initializeAllegro(ALLEGRO_DISPLAY *display, ALLEGRO_BITMAP *image){
                                  nullptr, ALLEGRO_MESSAGEBOX_ERROR);
     	return -1;
 	}
+	if(!al_install_mouse()) {
+      fprintf(stderr, "failed to initialize the mouse!\n");
+      return -1;
+   }
+
+	event_queue = al_create_event_queue();
+	if (!event_queue) {
+		al_show_native_message_box(display, "Error", "Error", "Failed to create event_queue!",
+                                 nullptr, ALLEGRO_MESSAGEBOX_ERROR);
+		al_destroy_display(display);
+      	return -1;
+	}
+    al_register_event_source(event_queue, al_get_mouse_event_source());
+	al_register_event_source(event_queue, al_get_display_event_source(display));
+	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 	return 0;
 }
